@@ -34,7 +34,7 @@ app.get("*", (req, res) => {
 
 // Route to handle user input, suggest a stock, fetch data, and analyze it
 app.post("/api/prompt", async (req, res) => {
-	console.log(req)
+	console.log(req);
 	const { depositAmount, numberOfDays, numberOfCompanies, profitAmount } =
 		req.body;
 
@@ -116,7 +116,7 @@ async function fetchStockData(symbol, days) {
 			params: {
 				function: "TIME_SERIES_DAILY",
 				symbol: symbol,
-				apikey: process.env.ALPHA_VANTAGE_API_KEY,
+				apikey: ALPHA_VANTAGE_API_KEY,
 			},
 		});
 

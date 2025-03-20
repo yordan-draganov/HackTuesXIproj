@@ -84,6 +84,7 @@
   }
   
   .section-title {
+    color: grey;
     text-align: center;
     font-size: 2rem;
     margin-bottom: 3rem;

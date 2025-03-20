@@ -12,7 +12,7 @@ app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
 // API Routes
 app.get("/api/message", (req, res) => {
-	res.json({ message: "boop" });
+	res.json({ word: "boop" });
 });
 
 app.get("*", (req, res) => {

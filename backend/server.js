@@ -34,30 +34,31 @@ app.get("*", (req, res) => {
 
 // Route to handle user input, suggest a stock, fetch data, and analyze it
 app.post("/api/prompt", async (req, res) => {
-	const { moneyToInvest, numberOfDays, numberOfAssests, profitGoal } =
+	console.log(req)
+	const { depositAmount, numberOfDays, numberOfCompanies, profitAmount } =
 		req.body;
 
 	console.log(
 		"Received data:",
-		moneyToInvest,
+		depositAmount,
 		numberOfDays,
-		numberOfAssests,
-		profitGoal
+		numberOfCompanies,
+		profitAmount
 	);
 
 	try {
 		const stocksSuggestion = await suggestStockMarket(
-			moneyToInvest,
+			depositAmount,
 			numberOfDays,
-			numberOfAssests,
-			profitGoal
+			numberOfCompanies,
+			profitAmount
 		);
 		console.log("Suggested Stock:", stocksSuggestion);
 
 		const wordsArray = stocksSuggestion.split(", ");
 		const result = [];
 
-		for (let i = 0; i < parseInt(numberOfAssests); i++) {
+		for (let i = 0; i < parseInt(numberOfCompanies); i++) {
 			const stockData = await fetchStockData(
 				wordsArray[i],
 				parseInt(numberOfDays)
@@ -81,10 +82,10 @@ app.post("/api/prompt", async (req, res) => {
 
 // Function to suggest a stock market based on user input
 async function suggestStockMarket(
-	moneyToInvest,
+	depositAmount,
 	numberOfDays,
-	numberOfAssests,
-	profitGoal
+	numberOfCompanies,
+	profitAmount
 ) {
 	try {
 		const response = await openai.chat.completions.create({
@@ -97,7 +98,7 @@ async function suggestStockMarket(
 				},
 				{
 					role: "user",
-					content: `I have ${moneyToInvest}$ to invest for ${numberOfDays} days aiming for a profit goal of ${profitGoal}$. Return ONLY the stock market symbols, seperated by commas, for the best ${numberOfAssests} assets that for my specifications. No extra information or text, just the symbols seperated by commas. The information doesn't have to be real-time stock market appropriate.`,
+					content: `I have ${depositAmount}$ to invest for ${numberOfDays} days aiming for a profit goal of ${profitAmount}$. Return ONLY the stock market symbols, seperated by commas, for the best ${numberOfCompanies} assets that for my specifications. No extra information or text, just the symbols seperated by commas. The information doesn't have to be real-time stock market appropriate.`,
 				},
 			],
 		});

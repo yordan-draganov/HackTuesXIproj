@@ -22,33 +22,33 @@ function Home() {
       </div>
 
       <div className="features-section">
-        <h2 className="section-title">Why Choose Us</h2>
+        <h2 className="section-title">Why we are better</h2>
         <div className="features-grid">
           <div className="feature-card">
             <div className="feature-icon trending-icon">📈</div>
             <h3>Market Insights</h3>
-            <p>Advanced analytics and real-time market data to make informed decisions.</p>
+            <p>Advanced research and proffesional advice that is the best on the market.</p>
           </div>
           <div className="feature-card">
             <div className="feature-icon security-icon">🔒</div>
             <h3>Secure Investing</h3>
-            <p>Bank-level security ensuring your investments are always protected.</p>
+            <p>Getting info from proffesionals meaning that you are always safe.</p>
           </div>
           <div className="feature-card">
             <div className="feature-icon expert-icon">🏆</div>
             <h3>Expert Guidance</h3>
-            <p>Personalized advice from industry professionals to optimize your portfolio.</p>
+            <p>Experts, what else do we need to say.</p>
           </div>
         </div>
       </div>
 
       <div className="testimonials-section">
-        <h2 className="section-title">What Our Clients Say</h2>
+        <h2 className="section-title">What do people think</h2>
         <div className="testimonial-card">
           <p className="testimonial-text">
-            "This platform transformed my approach to investing. The tools are intuitive and the guidance is invaluable."
+            "This platform made me able to invest even with little to no prior knowledge in the sector."
           </p>
-          <p className="testimonial-author">- Sarah M., Investor since 2023</p>
+          <p className="testimonial-author">- Momchil Vladimirov HackTues volunteer, Client Since 2025</p>
         </div>
       </div>
 

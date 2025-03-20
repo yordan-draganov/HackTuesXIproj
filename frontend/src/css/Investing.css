@@ -61,12 +61,14 @@
   
   .investment-form {
     max-width: 600px;
-    margin: 0 auto;
+    margin: 0 auto; /* Center the form */
     background-color: white;
     padding: 2rem;
     border-radius: 0.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box; /* Ensure padding and border are included in the width */
   }
+  
   
   .form-group {
     margin-bottom: 1.5rem;
@@ -168,3 +170,42 @@
       height: 70vh;
     }
   }
+
+
+  /* Result Box */
+/* Result Box */
+.result-box {
+  margin-top: 2rem;
+  margin-left: 0; /* Ensure no left margin */
+  padding: 1.5rem;
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  width: 100%; /* Take full width of the container */
+  max-width: 100%; /* Ensure it doesn't overflow */
+  word-wrap: break-word; /* Break long words to prevent overflow */
+  white-space: pre-wrap; /* Preserve line breaks and wrap text */
+  font-family: monospace; /* Use monospace font for better readability */
+  font-size: 1rem;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  box-sizing: border-box; /* Ensure padding and border are included in the width */
+}
+
+.result-box p {
+  margin: 0; /* Remove default margin for <p> inside the box */
+}
+
+
+/* Responsive Design for Result Box */
+@media (max-width: 768px) {
+  .result-box {
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .investment-form {
+    padding: 1.5rem;
+  }
+}

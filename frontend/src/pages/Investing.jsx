@@ -175,8 +175,12 @@ function Investing() {
             </button>
           </div>
 
-          {/* Display the API result if showMessage is true */}
-          {showMessage && <p className="hello-message">{result}</p>}
+          {/* Display the API result in a box */}
+          {showMessage && (
+            <div className="result-box">
+              <p>{result}</p>
+            </div>
+          )}
         </form>
       </div>
 

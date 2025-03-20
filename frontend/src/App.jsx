@@ -6,15 +6,7 @@ import Investing from './pages/Investing.jsx';
 
 
 function App() {
-  const [word, setWord] = useState('');
-
-  const fetchWord = () => {
-    fetch('http://localhost:5000/api/message')
-      .then((response) => response.json())
-      .then((data) => setWord(data.word))
-      .catch((error) => console.error('Error fetching word:', error));
-  };
-
+ 
   return (
     <>
     <NavBar />

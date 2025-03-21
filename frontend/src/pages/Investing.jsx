@@ -9,36 +9,31 @@ function Investing() {
   const [numberOfDays, setNumberOfDays] = useState(30);
   const [numberOfCompanies, setNumberOfCompanies] = useState("1");
   const [showMessage, setShowMessage] = useState(false);
-  const [stocksData, setStocksData] = useState(null); // Changed to store parsed object
+  const [stocksData, setStocksData] = useState(null); 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [touchedFields, setTouchedFields] = useState({ deposit: false, profit: false });
 
-  // Handle deposit input change and restrict to numbers only
   const handleDepositChange = (e) => {
     const numericValue = e.target.value.replace(/[^0-9]/g, "");
     setDepositAmount(numericValue);
     setTouchedFields({ ...touchedFields, deposit: true });
     
-    // Clear error message when user types
     if (numericValue && errorMessage) {
       setErrorMessage("");
     }
   };
 
-  // Handle profit input change and restrict to numbers only
   const handleProfitChange = (e) => {
     const numericValue = e.target.value.replace(/[^0-9]/g, "");
     setProfitAmount(numericValue);
     setTouchedFields({ ...touchedFields, profit: true });
     
-    // Clear error message when user types
     if (numericValue && errorMessage) {
       setErrorMessage("");
     }
   };
 
-  // Handle timeframe change and calculate the number of days
   const handleTimeframeChange = (e) => {
     const selectedTimeframe = e.target.value;
     setTimeframe(selectedTimeframe);
@@ -66,50 +61,42 @@ function Investing() {
     setNumberOfDays(days);
   };
 
-  // Handle number of companies change
   const handleNumberOfCompaniesChange = (e) => {
     const selectedNumberOfCompanies = e.target.value;
     setNumberOfCompanies(selectedNumberOfCompanies);
   };
 
-  // Validate form fields and return error message if invalid
   const validateForm = () => {
-    // Check if both deposit and profit fields are empty
     if (!depositAmount && !profitAmount) {
       return "Please fill out both the deposit amount and profit amount fields.";
     }
-    // Check if deposit field is empty
     else if (!depositAmount) {
       return "Please enter a deposit amount.";
     }
-    // Check if profit field is empty
     else if (!profitAmount) {
       return "Please enter your desired profit amount.";
     }
     
-    return ""; // No errors
+    return ""; 
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Form submitted");
   
     setTouchedFields({ deposit: true, profit: true });
   
-    // Validate the form
     const error = validateForm();
     if (error) {
       console.log("Validation failed: " + error);
       setErrorMessage(error);
-      return; // Stop execution if validation fails
+      return;
     }
   
     setErrorMessage("");
     setIsLoading(true);
     setShowMessage(false);
   
-    // Send email first (optional)
     const emailData = {
       to: "ralchev.nikola@gmail.com",
       subject: "Hello from Express",
@@ -128,7 +115,6 @@ function Investing() {
       console.error("Error sending email:", error);
     }
   
-    // Prepare payload for stock API
     const payload = {
       depositAmount,
       numberOfDays,
@@ -138,7 +124,6 @@ function Investing() {
   
     console.log("Making API call with payload:", payload);
   
-    // Fetch stock data
     fetch("http://localhost:5000/api/prompt", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -172,12 +157,10 @@ function Investing() {
   };
   
 
-  // Determine if a field is invalid (empty and touched)
   const isFieldInvalid = (field, value) => {
     return touchedFields[field] && !value;
   };
 
-  // Function to render stock results
   const renderStockResults = () => {
     if (!stocksData || !stocksData.stocks || stocksData.stocks.length === 0) {
       return <p>No stock data available.</p>;
@@ -210,7 +193,6 @@ function Investing() {
 
   return (
     <div className="investing-container">
-      {/* Loading Overlay */}
       {isLoading && (
         <div className="loading-overlay">
           <div className="loading-spinner"></div>
@@ -229,7 +211,6 @@ function Investing() {
       <div className="investment-form-section">
         <h2 className="section-title">Investment Details</h2>
         <form className="investment-form" onSubmit={handleSubmit}>
-          {/* Deposit Amount Input */}
           <div className="form-group">
             <label htmlFor="deposit">Deposit Amount <span className="required">*</span></label>
             <input
@@ -247,7 +228,6 @@ function Investing() {
             )}
           </div>
 
-          {/* Timeframe Dropdown */}
           <div className="form-group">
             <label htmlFor="timeframe">Time Frame (Months)</label>
             <select
@@ -265,7 +245,6 @@ function Investing() {
             </select>
           </div>
 
-          {/* Profit Amount Input */}
           <div className="form-group">
             <label htmlFor="profit">Requested Profit <span className="required">*</span></label>
             <input
@@ -283,7 +262,6 @@ function Investing() {
             )}
           </div>
 
-          {/* Number of Companies Dropdown */}
           <div className="form-group">
             <label htmlFor="nOfCompanies">Number of Companies</label>
             <select
@@ -301,14 +279,12 @@ function Investing() {
             </select>
           </div>
 
-          {/* Main Error Message */}
           {errorMessage && (
             <div className="error-message">
               <p>{errorMessage}</p>
             </div>
           )}
 
-          {/* Submit Button */}
           <div className="cta">
             <button
               type="submit"
@@ -319,7 +295,6 @@ function Investing() {
             </button>
           </div>
 
-          {/* Display the stock results in a formatted way */}
           {showMessage && (
             <div className="result-box">
               {renderStockResults()}

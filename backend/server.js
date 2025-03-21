@@ -2,7 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
 const { OpenAI } = require("openai");
-// const mongoose = require("mongoose");
+
+
 const math = require("mathjs");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
@@ -21,28 +22,11 @@ app.use(express.static(path.join(__dirname, "../frontend/dist")));
 const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// Connect to MongoDB
-// mongoose
-//  .connect(
-//      `mongodb+srv://nn-admin:${process.env.MONGODB_PASSWORD}@cluster0.i0hvpv3.mongodb.net/investmentDB?retryWrites=true&w=majority&appName=Cluster0`
-//  )
-//  .then(() => console.log("Connected to MongoDB"))
-//  .catch((err) => console.error("MongoDB connection error:", err));
 
-// Define Investment Schema
-// const investmentSchema = new mongoose.Schema({
-//  responce: String,
-//  createdAt: { type: Date, default: Date.now },
-// });
-
-// const Investment = mongoose.model("Investment", investmentSchema);
-
-// Initialize OpenAI
 const openai = new OpenAI({
     apiKey: OPENAI_API_KEY,
 });
 
-// API Routes
 app.get("/api/word", (req, res) => {
     res.json({ word: "boop" });
 });
@@ -51,7 +35,6 @@ app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
 });
 
-// Route to handle user input, suggest a stock, fetch data, and analyze it
 app.post("/api/prompt", async (req, res) => {
     console.log(req);
     const { depositAmount, numberOfDays, numberOfCompanies, profitAmount } =
@@ -113,10 +96,6 @@ app.post("/api/prompt", async (req, res) => {
             });
         }
 
-        // const newInvestment = new Investment({
-        //  responce: JSON.stringify(result),
-        // });
-        // await newInvestment.save();
 
         res.json({
             result: result,
@@ -155,7 +134,6 @@ async function analyzeStock(
     return aiResponce;
 }
 
-// Function to suggest a stock market based on user input
 async function suggestStockMarket(
     depositAmount,
     numberOfDays,
@@ -178,13 +156,12 @@ async function suggestStockMarket(
             ],
         });
 
-        return response.choices[0].message.content.trim(); // The suggested stock symbol
+        return response.choices[0].message.content.trim();
     } catch (error) {
         throw new Error("Error suggesting a stock market: " + error.message);
     }
 }
 
-// Function to fetch stock data from Alpha Vantage
 async function fetchStockData(symbol, days) {
     try {
         const response = await axios.get("https://www.alphavantage.co/query", {
@@ -219,15 +196,14 @@ async function fetchStockData(symbol, days) {
 
 function calculateRiskReward(stockData) {
     const prices = stockData.map((day) => day.close);
-    if (prices.length < 2) return null; // Not enough data
+    if (prices.length < 2) return null;
 
     const returns = prices.slice(1).map((p, i) => (p - prices[i]) / prices[i]);
 
-    const avgReturn = math.mean(returns) * 252 * 100; // Annualized return (%)
-    const stdDev = math.std(returns) * Math.sqrt(252) * 100; // Volatility (%)
-    const sharpeRatio = (avgReturn - RISK_FREE_RATE) / stdDev; // Risk-adjusted return
+    const avgReturn = math.mean(returns) * 252 * 100;
+    const stdDev = math.std(returns) * Math.sqrt(252) * 100;
+    const sharpeRatio = (avgReturn - RISK_FREE_RATE) / stdDev;
 
-    // Determine Risk Level
     let riskLevel;
     if (stdDev < 15 && sharpeRatio > 1.5) {
         riskLevel = "Low";

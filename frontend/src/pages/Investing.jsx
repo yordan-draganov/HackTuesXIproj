@@ -91,38 +91,54 @@ function Investing() {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Form submitted");
-
-    // Mark both fields as touched when submitting
+  
     setTouchedFields({ deposit: true, profit: true });
-    
+  
     // Validate the form
     const error = validateForm();
     if (error) {
       console.log("Validation failed: " + error);
       setErrorMessage(error);
-      return; // Stop the function if validation fails
+      return; // Stop execution if validation fails
     }
-
-    // Clear any previous error messages
+  
     setErrorMessage("");
-
-    setIsLoading(true); // Start loading
-    setShowMessage(false); // Hide previous result
-
-    // Prepare the payload
+    setIsLoading(true);
+    setShowMessage(false);
+  
+    // Send email first (optional)
+    const emailData = {
+      to: "ralchev.nikola@gmail.com",
+      subject: "Hello from Express",
+      text: "This is a test email.",
+    };
+  
+    try {
+      const emailResponse = await fetch("http://localhost:5000/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(emailData),
+      });
+      const emailResult = await emailResponse.json();
+      console.log("Email Response:", emailResult);
+    } catch (error) {
+      console.error("Error sending email:", error);
+    }
+  
+    // Prepare payload for stock API
     const payload = {
       depositAmount,
       numberOfDays,
       numberOfCompanies,
       profitAmount,
     };
-
+  
     console.log("Making API call with payload:", payload);
-
-    // Make the API call
+  
+    // Fetch stock data
     fetch("http://localhost:5000/api/prompt", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -131,31 +147,30 @@ function Investing() {
       .then((response) => response.json())
       .then((data) => {
         console.log("API Response:", data);
-        
-        // Check if result is a string that needs parsing
-        if (data.result && typeof data.result === 'string') {
+  
+        if (data.result && typeof data.result === "string") {
           try {
-            setStocksData(JSON.parse(data.result)); // Parse JSON string
+            setStocksData(JSON.parse(data.result));
           } catch (error) {
             console.error("Error parsing JSON:", error);
-            setStocksData(data.result); // If it fails, use as is
+            setStocksData(data.result);
           }
         } else {
-          // If result is already an object
           setStocksData(data.result || data);
         }
-        
-        setShowMessage(true); // Show the result message
+  
+        setShowMessage(true);
       })
       .catch((error) => {
         console.error("Error processing data:", error);
-        setErrorMessage("An error occurred while processing your request."); // Handle errors
+        setErrorMessage("An error occurred while processing your request.");
         setShowMessage(false);
       })
       .finally(() => {
-        setIsLoading(false); // Stop loading
+        setIsLoading(false);
       });
   };
+  
 
   // Determine if a field is invalid (empty and touched)
   const isFieldInvalid = (field, value) => {

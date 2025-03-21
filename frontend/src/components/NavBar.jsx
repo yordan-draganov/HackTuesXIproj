@@ -6,7 +6,7 @@ import React from "react"
 function NavBar(){
     return <nav className="navbar">
         <div className = "navbar-brand">
-            <Link to = "/"> BLOCK 20 </Link>
+            <Link to = "/"> SMI </Link>
         </div>
         <div className = "navbar-links">
             <Link to = "/" className="nav-link-home">Home</Link>

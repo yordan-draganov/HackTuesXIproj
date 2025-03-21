@@ -1,6 +1,7 @@
 import "../css/Investing.css";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useUser } from "../context/userContext";
 
 function Investing() {
   const [depositAmount, setDepositAmount] = useState("");
@@ -13,6 +14,8 @@ function Investing() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [touchedFields, setTouchedFields] = useState({ deposit: false, profit: false });
+
+  const { updateUser } = useUser();
 
   // Handle deposit input change and restrict to numbers only
   const handleDepositChange = (e) => {
@@ -145,6 +148,7 @@ function Investing() {
           setStocksData(data.result || data);
         }
         
+        updateUser("investmentAdvice", data.result);
         setShowMessage(true); // Show the result message
       })
       .catch((error) => {

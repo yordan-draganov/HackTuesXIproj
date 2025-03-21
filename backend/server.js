@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
 const { OpenAI } = require("openai");
+const mongoose = require("mongoose");
 require("dotenv").config();
 
 const app = express();
@@ -17,6 +18,22 @@ app.use(express.static(path.join(__dirname, "../frontend/dist")));
 // API Keys from .env
 const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+// Connect to MongoDB
+mongoose
+	.connect(
+		`mongodb+srv://nn-admin:${process.env.MONGODB_PASSWORD}@cluster0.i0hvpv3.mongodb.net/investmentDB?retryWrites=true&w=majority&appName=Cluster0`
+	)
+	.then(() => console.log("Connected to MongoDB"))
+	.catch((err) => console.error("MongoDB connection error:", err));
+
+// Define Investment Schema
+const investmentSchema = new mongoose.Schema({
+	responce: String,
+	createdAt: { type: Date, default: Date.now },
+});
+
+const Investment = mongoose.model("Investment", investmentSchema);
 
 // Initialize OpenAI
 const openai = new OpenAI({
@@ -67,6 +84,11 @@ app.post("/api/prompt", async (req, res) => {
 		}
 
 		// const analysis = await analyzeStockData(stockData);
+
+		const newInvestment = new Investment({
+			responce: JSON.stringify(result),
+		});
+		await newInvestment.save();
 
 		res.json({
 			result: JSON.stringify(result),

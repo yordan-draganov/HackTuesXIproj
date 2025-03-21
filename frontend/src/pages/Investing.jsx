@@ -9,7 +9,10 @@ function Investing() {
   const [numberOfDays, setNumberOfDays] = useState(0);
   const [numberOfCompanies, setNumberOfCompanies] = useState("1");
   const [showMessage, setShowMessage] = useState(false);
-  const [result, setResult] = useState("");
+  const [stocksData, setStocksData] = useState(null); // Changed to store parsed object
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [touchedFields, setTouchedFields] = useState({ deposit: false, profit: false });
 
   // Handle deposit input change and restrict to numbers only
   const handleDepositChange = (e) => {
@@ -84,14 +87,66 @@ function Investing() {
       .then((response) => response.json())
       .then((data) => {
         console.log("API Response:", data);
-        setResult(data.result); // Store the API response in state
+        
+        // Check if result is a string that needs parsing
+        if (data.result && typeof data.result === 'string') {
+          try {
+            setStocksData(JSON.parse(data.result)); // Parse JSON string
+          } catch (error) {
+            console.error("Error parsing JSON:", error);
+            setStocksData(data.result); // If it fails, use as is
+          }
+        } else {
+          // If result is already an object
+          setStocksData(data.result || data);
+        }
+        
         setShowMessage(true); // Show the result message
       })
       .catch((error) => {
         console.error("Error processing data:", error);
-        setResult("An error occurred while processing your request."); // Handle errors
-        setShowMessage(true);
+        setErrorMessage("An error occurred while processing your request."); // Handle errors
+        setShowMessage(false);
+      })
+      .finally(() => {
+        setIsLoading(false); // Stop loading
       });
+  };
+
+  // Determine if a field is invalid (empty and touched)
+  const isFieldInvalid = (field, value) => {
+    return touchedFields[field] && !value;
+  };
+
+  // Function to render stock results
+  const renderStockResults = () => {
+    if (!stocksData || !stocksData.stocks || stocksData.stocks.length === 0) {
+      return <p>No stock data available.</p>;
+    }
+
+    return (
+      <div className="stocks-results">
+        <h3>Recommended Stocks</h3>
+        <div className="stocks-grid">
+          {stocksData.stocks.map((stock, index) => (
+            <div key={index} className="stock-card">
+              <h4 className="stock-symbol">{stock.symbol}</h4>
+              <div className="stock-detail">
+                <span className="detail-label">Average Open:</span> 
+                <span className="detail-value">${stock.averageOpen}</span>
+              </div>
+              <div className="stock-detail">
+                <span className="detail-label">Risk Level:</span> 
+                <span className={`detail-value risk-${stock.risk.toLowerCase()}`}>{stock.risk}</span>
+              </div>
+              <div className="stock-evaluation">
+                <p>{stock.evaluation}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -160,7 +215,7 @@ function Investing() {
               onChange={handleNumberOfCompaniesChange}
               required
             >
-              {[...Array(10).keys()].map((i) => (
+              {[...Array(4).keys()].map((i) => (
                 <option key={i + 1} value={i + 1}>
                   {i + 1}
                 </option>
@@ -175,10 +230,10 @@ function Investing() {
             </button>
           </div>
 
-          {/* Display the API result in a box */}
+          {/* Display the stock results in a formatted way */}
           {showMessage && (
             <div className="result-box">
-              <p>{result}</p>
+              {renderStockResults()}
             </div>
           )}
         </form>

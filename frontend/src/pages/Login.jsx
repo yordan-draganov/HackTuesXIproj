@@ -31,8 +31,7 @@ const LoginForm = () => {
     
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      console.log("Login successful!");
-      navigate("/dashboard"); 
+      navigate("/investing"); 
     } catch (error) {
       console.error("Login error:", error);
 

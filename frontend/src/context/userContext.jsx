@@ -1,7 +1,7 @@
 import React, {createContext, useContext, useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../../firebase"; // Adjust the import path as needed
+import { db } from "../../firebase";
 
 const UserContext = createContext();
 
@@ -14,11 +14,9 @@ export const UserProvider = ({ children }) => {
   const updateUser = async (field, value) => {
     if (!user) return;
 
-    // Update Firestore
     const userRef = doc(db, "users", user.uid);
     await updateDoc(userRef, { [field]: value });
 
-    // Update local state
     setUser((prevUser) => ({
       ...prevUser,
       [field]: value,
@@ -37,7 +35,7 @@ export const UserProvider = ({ children }) => {
       }
     });
 
-    return () => unsubscribe(); // Cleanup on unmount
+    return () => unsubscribe();
   }, [auth]);
 
   return (

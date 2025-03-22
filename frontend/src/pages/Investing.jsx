@@ -15,9 +15,8 @@ function Investing() {
   const [errorMessage, setErrorMessage] = useState("");
   const [touchedFields, setTouchedFields] = useState({ deposit: false, profit: false });
 
-  const { updateUser } = useUser();
+  const { user, updateUser } = useUser();
 
-  // Handle deposit input change and restrict to numbers only
   const handleDepositChange = (e) => {
     const numericValue = e.target.value.replace(/[^0-9]/g, "");
     setDepositAmount(numericValue);
@@ -85,8 +84,7 @@ function Investing() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log("Form submitted");
+    e.preventDefault()
   
     setTouchedFields({ deposit: true, profit: true });
   
@@ -101,24 +99,6 @@ function Investing() {
     setIsLoading(true);
     setShowMessage(false);
   
-    const emailData = {
-      to: "ralchev.nikola@gmail.com",
-      subject: "Hello from Express",
-      text: "This is a test email.",
-    };
-  
-    try {
-      const emailResponse = await fetch("http://localhost:5000/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(emailData),
-      });
-      const emailResult = await emailResponse.json();
-      console.log("Email Response:", emailResult);
-    } catch (error) {
-      console.error("Error sending email:", error);
-    }
-  
     const payload = {
       depositAmount,
       numberOfDays,
@@ -126,8 +106,12 @@ function Investing() {
       profitAmount,
     };
   
-    console.log("Making API call with payload:", payload);
-  
+    let emailData = {
+      to: user.email,
+      subject: "Stock Report",
+      text: "",
+    };
+
     fetch("http://localhost:5000/api/prompt", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -135,8 +119,6 @@ function Investing() {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("API Response:", data);
-  
         if (data.result && typeof data.result === "string") {
           try {
             setStocksData(JSON.parse(data.result));
@@ -147,9 +129,11 @@ function Investing() {
         } else {
           setStocksData(data.result || data);
         }
+        emailData.text = data.result.stocks.map(stock => stock.evaluation).join("\n");
         
         updateUser("investmentAdvice", data.result);
-        setShowMessage(true); // Show the result message
+        setShowMessage(true);
+        return sendEmail(emailData);
       })
       .catch((error) => {
         console.error("Error processing data:", error);
@@ -161,6 +145,19 @@ function Investing() {
       });
   };
   
+
+  async function sendEmail(emailData) {
+    try {
+      const emailResponse = await fetch("http://localhost:5000/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(emailData),
+      });
+      await emailResponse.json();
+    } catch (error) {
+      console.error("Error sending email:", error);
+    }
+  }
 
   const isFieldInvalid = (field, value) => {
     return touchedFields[field] && !value;

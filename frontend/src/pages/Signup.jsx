@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-const bcrypt = await import("bcryptjs");
+import bcrypt from "bcryptjs";
 import "../css/Signup.css";
 import { auth, db } from "../../firebase";
 
@@ -19,18 +19,15 @@ const SignupForm = () => {
     setError("");
 
     try {
-      // Create user with Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Hash password before storing in Firestore
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Store user data in Firestore
       await setDoc(doc(db, "users", user.uid), {
         email: email,
-        password: hashedPassword, // Store the hashed password
-        investmentAdvice: "", // Leave blank on sign-up
+        password: hashedPassword,
+        investmentAdvice: "",
         createdAt: new Date(),
       });
 

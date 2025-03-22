@@ -1,20 +1,13 @@
-import { useState } from 'react';
 import Home from './pages/Home.jsx';
 import { Routes, Route } from 'react-router-dom'
 import NavBar from './components/NavBar.jsx';
 import Investing from './pages/Investing.jsx';
-
+import React from "react"
+import Login from './pages/Login.jsx'
+import Signup from './pages/Signup.jsx'
 
 function App() {
-  const [word, setWord] = useState('');
-
-  const fetchWord = () => {
-    fetch('http://localhost:5000/api/message')
-      .then((response) => response.json())
-      .then((data) => setWord(data.word))
-      .catch((error) => console.error('Error fetching word:', error));
-  };
-
+ 
   return (
     <>
     <NavBar />
@@ -23,7 +16,8 @@ function App() {
     <Routes>
       <Route path = "/" element = {<Home />}/>
       <Route path = "/investing" element = {<Investing/>}/>
-
+      <Route path = "/login" element = {<Login/>}/>
+      <Route path = "/signup" element = {<Signup/>}/>
     </Routes>
 
    </main>

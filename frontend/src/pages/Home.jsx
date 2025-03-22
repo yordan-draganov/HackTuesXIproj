@@ -1,7 +1,11 @@
 import "../css/Home.css";
 import { Link } from "react-router-dom";
+import React from "react"
+import { useUser } from "../context/userContext";
 
 function Home() {
+  const { user } = useUser();
+
   return (
     <div className="home-container">
       <div className="hero">
@@ -10,6 +14,11 @@ function Home() {
           <p className="hero-subtitle">
             Your journey to financial freedom starts with one smart decision.
           </p>
+          {user ? (
+          <p>Welcome, {user.email}!</p>
+          ) : (
+            <p>Please log in.</p>
+          )}
           <div className="hero-cta">
             <Link to="/signup" className="cta-button">
               Get Started <span className="arrow-icon">→</span>

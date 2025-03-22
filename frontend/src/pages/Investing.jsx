@@ -1,33 +1,40 @@
 import "../css/Investing.css";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useUser } from "../context/userContext";
 
 function Investing() {
   const [depositAmount, setDepositAmount] = useState("");
   const [profitAmount, setProfitAmount] = useState("");
-  const [timeframe, setTimeframe] = useState("1"); 
-  const [numberOfDays, setNumberOfDays] = useState(0); 
+  const [timeframe, setTimeframe] = useState("1");
+  const [numberOfDays, setNumberOfDays] = useState(30);
   const [numberOfCompanies, setNumberOfCompanies] = useState("1");
   const [showMessage, setShowMessage] = useState(false);
+  const [stocksData, setStocksData] = useState(null); 
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [touchedFields, setTouchedFields] = useState({ deposit: false, profit: false });
 
-  const GetInputDeposit = (e) => {
-    e.preventDefault();
-    console.log("Deposit amount:", depositAmount);
-  };
+  const { user, updateUser } = useUser();
 
   const handleDepositChange = (e) => {
     const numericValue = e.target.value.replace(/[^0-9]/g, "");
     setDepositAmount(numericValue);
-  };
-
-  const GetInputProfit = (e) => {
-    e.preventDefault();
-    console.log("Profit amount:", profitAmount);
+    setTouchedFields({ ...touchedFields, deposit: true });
+    
+    if (numericValue && errorMessage) {
+      setErrorMessage("");
+    }
   };
 
   const handleProfitChange = (e) => {
     const numericValue = e.target.value.replace(/[^0-9]/g, "");
     setProfitAmount(numericValue);
+    setTouchedFields({ ...touchedFields, profit: true });
+    
+    if (numericValue && errorMessage) {
+      setErrorMessage("");
+    }
   };
 
   const handleTimeframeChange = (e) => {
@@ -52,15 +59,9 @@ function Investing() {
         days = 365;
         break;
       default:
-        days = 0; 
+        days = 0;
     }
     setNumberOfDays(days);
-  };
-
-  const handleTimeframeSubmit = (e) => {
-    e.preventDefault();
-    console.log("Selected timeframe (months):", timeframe);
-    console.log("Number of days:", numberOfDays);
   };
 
   const handleNumberOfCompaniesChange = (e) => {
@@ -68,27 +69,138 @@ function Investing() {
     setNumberOfCompanies(selectedNumberOfCompanies);
   };
 
-  const handleNumberOfCompaniesSubmit = (e) => {
-    e.preventDefault();
-    console.log("Number of companies:", numberOfCompanies);
+  const validateForm = () => {
+    if (!depositAmount && !profitAmount) {
+      return "Please fill out both the deposit amount and profit amount fields.";
+    }
+    else if (!depositAmount) {
+      return "Please enter a deposit amount.";
+    }
+    else if (!profitAmount) {
+      return "Please enter your desired profit amount.";
+    }
+    
+    return ""; 
   };
 
-  const handleCalculateInvestment = () => {
-    console.log("--- Investment Summary ---");
-    console.log("Deposit amount:", depositAmount);
-    console.log("Profit amount:", profitAmount);
-    console.log("Selected timeframe (months):", timeframe);
-    console.log("Number of days:", numberOfDays);
-    console.log("Number of companies:", numberOfCompanies);
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+  
+    setTouchedFields({ deposit: true, profit: true });
+  
+    const error = validateForm();
+    if (error) {
+      console.log("Validation failed: " + error);
+      setErrorMessage(error);
+      return;
+    }
+  
+    setErrorMessage("");
+    setIsLoading(true);
+    setShowMessage(false);
+  
+    const payload = {
+      depositAmount,
+      numberOfDays,
+      numberOfCompanies,
+      profitAmount,
+    };
+  
+    let emailData = {
+      to: user.email,
+      subject: "Stock Report",
+      text: "",
+    };
 
-    // Show the "Hello" message
-    setShowMessage(true);
+    fetch("http://localhost:5000/api/prompt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.result && typeof data.result === "string") {
+          try {
+            setStocksData(JSON.parse(data.result));
+          } catch (error) {
+            console.error("Error parsing JSON:", error);
+            setStocksData(data.result);
+          }
+        } else {
+          setStocksData(data.result || data);
+        }
+        emailData.text = data.result.stocks.map(stock => stock.evaluation).join("\n");
+        
+        updateUser("investmentAdvice", data.result);
+        setShowMessage(true);
+        return sendEmail(emailData);
+      })
+      .catch((error) => {
+        console.error("Error processing data:", error);
+        setErrorMessage("An error occurred while processing your request.");
+        setShowMessage(false);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+  
 
-    // Navigate to /investment-summary after handling the logic
+  async function sendEmail(emailData) {
+    try {
+      const emailResponse = await fetch("http://localhost:5000/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(emailData),
+      });
+      await emailResponse.json();
+    } catch (error) {
+      console.error("Error sending email:", error);
+    }
+  }
+
+  const isFieldInvalid = (field, value) => {
+    return touchedFields[field] && !value;
+  };
+
+  const renderStockResults = () => {
+    if (!stocksData || !stocksData.stocks || stocksData.stocks.length === 0) {
+      return <p>No stock data available.</p>;
+    }
+
+    return (
+      <div className="stocks-results">
+        <h3>Recommended Stocks</h3>
+        <div className="stocks-grid">
+          {stocksData.stocks.map((stock, index) => (
+            <div key={index} className="stock-card">
+              <h4 className="stock-symbol">{stock.symbol}</h4>
+              <div className="stock-detail">
+                <span className="detail-label">Average Open:</span> 
+                <span className="detail-value">${stock.averageOpen}</span>
+              </div>
+              <div className="stock-detail">
+                <span className="detail-label">Risk Level:</span> 
+                <span className={`detail-value risk-${stock.risk.toLowerCase()}`}>{stock.risk}</span>
+              </div>
+              <div className="stock-evaluation">
+                <p>{stock.evaluation}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="investing-container">
+      {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner"></div>
+        </div>
+      )}
+
       <div className="hero">
         <div className="hero-content">
           <h1 className="hero-title">Plan Your Investment</h1>
@@ -100,88 +212,97 @@ function Investing() {
 
       <div className="investment-form-section">
         <h2 className="section-title">Investment Details</h2>
-        <div className="investment-form">
-          {/* Deposit Amount Form */}
+        <form className="investment-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <form onSubmit={GetInputDeposit}>
-              <label htmlFor="deposit">Deposit Amount</label>
-              <input
-                type="text"
-                id="deposit"
-                placeholder="Enter your deposit"
-                value={depositAmount}
-                onChange={handleDepositChange}
-              />
-              <button type="submit">Submit</button>
-            </form>
+            <label htmlFor="deposit">Deposit Amount <span className="required">*</span></label>
+            <input
+              type="text"
+              id="deposit"
+              placeholder="Enter your deposit"
+              value={depositAmount}
+              onChange={handleDepositChange}
+              className={isFieldInvalid("deposit", depositAmount) ? "invalid-input" : ""}
+              required
+              disabled={isLoading}
+            />
+            {isFieldInvalid("deposit", depositAmount) && (
+              <p className="field-error-message">Deposit amount is required</p>
+            )}
           </div>
 
-          {/* Timeframe Form */}
           <div className="form-group">
-            <form onSubmit={handleTimeframeSubmit}>
-              <label htmlFor="timeframe">Time Frame (Months)</label>
-              <select
-                id="timeframe"
-                value={timeframe}
-                onChange={handleTimeframeChange}
-              >
-                <option value="1">1 Month</option>
-                <option value="3">3 Months</option>
-                <option value="6">6 Months</option>
-                <option value="10">10 Months</option>
-                <option value="12">12 Months</option>
-              </select>
-              <button type="submit">Submit Timeframe</button>
-            </form>
+            <label htmlFor="timeframe">Time Frame (Months)</label>
+            <select
+              id="timeframe"
+              value={timeframe}
+              onChange={handleTimeframeChange}
+              required
+              disabled={isLoading}
+            >
+              <option value="1">1 Month</option>
+              <option value="3">3 Months</option>
+              <option value="6">6 Months</option>
+              <option value="10">10 Months</option>
+              <option value="12">12 Months</option>
+            </select>
           </div>
 
-          {/* Profit Form */}
           <div className="form-group">
-            <form onSubmit={GetInputProfit}>
-              <label htmlFor="profit">Requested Profit</label>
-              <input
-                type="text"
-                id="profit"
-                placeholder="Enter your desired profit"
-                value={profitAmount}
-                onChange={handleProfitChange}
-              />
-              <button type="submit">Submit</button>
-            </form>
+            <label htmlFor="profit">Requested Profit <span className="required">*</span></label>
+            <input
+              type="text"
+              id="profit"
+              placeholder="Enter your desired profit"
+              value={profitAmount}
+              onChange={handleProfitChange}
+              className={isFieldInvalid("profit", profitAmount) ? "invalid-input" : ""}
+              required
+              disabled={isLoading}
+            />
+            {isFieldInvalid("profit", profitAmount) && (
+              <p className="field-error-message">Profit amount is required</p>
+            )}
           </div>
 
-          {/* Number of Companies Form */}
           <div className="form-group">
-            <form onSubmit={handleNumberOfCompaniesSubmit}>
-              <label htmlFor="nOfCompanies">Number of Companies</label>
-              <select
-                id="nOfCompanies"
-                value={numberOfCompanies}
-                onChange={handleNumberOfCompaniesChange}
-              >
-                {[...Array(10).keys()].map((i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {i + 1}
-                  </option>
-                ))}
-              </select>
-              <button type="submit">Submit</button>
-            </form>
+            <label htmlFor="nOfCompanies">Number of Companies</label>
+            <select
+              id="nOfCompanies"
+              value={numberOfCompanies}
+              onChange={handleNumberOfCompaniesChange}
+              required
+              disabled={isLoading}
+            >
+              {[...Array(4).keys()].map((i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* Calculate Investment Button */}
+          {errorMessage && (
+            <div className="error-message">
+              <p>{errorMessage}</p>
+            </div>
+          )}
+
           <div className="cta">
             <button
+              type="submit"
               className="cta-button"
-              onClick={handleCalculateInvestment} // Use onClick handler
+              disabled={isLoading}
             >
-              Calculate Investment
+              {isLoading ? "Calculating..." : "Calculate Investment"}
             </button>
-            {/* Display "Hello" message if showMessage is true */}
-            {showMessage && <p className="hello-message">Hello</p>}
           </div>
-          
-        </div>
+
+          {showMessage && (
+            <div className="result-box">
+              {renderStockResults()}
+            </div>
+          )}
+        </form>
       </div>
 
       <div className="cta-section">
